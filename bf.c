@@ -31,7 +31,7 @@ void interpret(char* program)
     int ptr = 0;
     int instruction_ptr = 0;
 
-    while(instruction_ptr < strlen(program))
+    while(instruction_ptr < (int) strlen(program))
     {
         switch(program[instruction_ptr])
         {
@@ -54,8 +54,7 @@ void interpret(char* program)
                 printf("%c", memory[ptr]);
                 break;
             case ',':
-                printf("Enter int to save in cell %d: ", ptr);
-                //memory[ptr] = getchar();
+                printf("\nEnter char to save in cell %d: ", ptr);
                 scanf(" %c", memory + ptr);
                 break;
 
@@ -110,7 +109,7 @@ void interpret(char* program)
 
 void print_memory()
 {
-    puts("\n\nThe program modified memory as follows:");
+    puts("\nThe program modified memory as follows:");
     for (int i = 0; i < MEMORY_SIZE; i++)
     {
         // Formatting - extra \n after 8 lines
@@ -142,7 +141,8 @@ int main(int argc, char** argv)
         FILE* inputFile = fopen(argv[1], "r");
         if(inputFile == NULL) 
         {
-            printf("The file \"%s\" could not be opened. Does it exist?\n", argv[1]);
+            printf("The file \"%s\" could not be opened. Does it exist?\n",
+                argv[1]);
             return(1);
         }
         fread(program, 1, PROGRAM_SIZE, inputFile);
@@ -169,7 +169,11 @@ int main(int argc, char** argv)
     // For debugging
     // print_memory();
 
-    printf("\nElapsed time: %ld s, %i µs\n", t2.tv_sec - t1.tv_sec, t2.tv_usec - t1.tv_usec);
+    int usec = t2.tv_usec - t1.tv_usec;
+    int sec  = t2.tv_sec - t1.tv_sec;
+    float total = sec + ((float) usec) / 10E6;
+
+    printf("\nElapsed time: %f seconds\n", total);
 
 
     return 0;
