@@ -2,7 +2,7 @@
 
 Brainfuck interpreter in C
 
-Still goofs out when asked for input, but everything else works fine. 1024 * 1 Byte (unsigned char) memory cells.
+Still goofs out sometimes when asked for input, but everything else works fine. 1024 * 1 Byte (unsigned char) memory cells.
   
     ./bf programs/test.bf
     Lorem ipsum dolor sit amet.

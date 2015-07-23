@@ -30,8 +30,9 @@ void interpret(char* program)
 {
     int ptr = 0;
     int instruction_ptr = 0;
+    int length = strlen(program);
 
-    while(instruction_ptr < (int) strlen(program))
+    while(instruction_ptr < length)
     {
         switch(program[instruction_ptr])
         {
@@ -63,18 +64,18 @@ void interpret(char* program)
                 if(memory[ptr] == 0)
                 {
                     // Jump forward to matching ]
-                    int bracketCounter = 1;
-                    while(bracketCounter)
+                    int bracket_counter = 1;
+                    while(bracket_counter)
                     {
                         instruction_ptr++;
                         if(program[instruction_ptr] == '[')
                         {
-                            bracketCounter++;
+                            bracket_counter++;
                         }
 
                         if(program[instruction_ptr] == ']')
                         {
-                            bracketCounter--;
+                            bracket_counter--;
                         }
                     }
                     instruction_ptr--;
@@ -85,18 +86,18 @@ void interpret(char* program)
                 if(memory[ptr] != 0)
                 {
                     // Jump back to matching [
-                    int bracketCounter = 1;
-                    while(bracketCounter)
+                    int bracket_counter = 1;
+                    while(bracket_counter)
                     {
                         instruction_ptr--;
                         if (program[instruction_ptr] == ']')
                         {
-                            bracketCounter++;
+                            bracket_counter++;
                         }
 
                         if (program[instruction_ptr] == '[')
                         {
-                            bracketCounter--;
+                            bracket_counter--;
                         }
                     }
                 } // end if
