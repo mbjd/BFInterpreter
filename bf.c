@@ -32,7 +32,7 @@ void interpret(char* program)
     int instruction_ptr = 0;
     int length = strlen(program);
 
-    while(instruction_ptr < length)
+    while (instruction_ptr < length)
     {
         switch(program[instruction_ptr])
         {
@@ -61,19 +61,19 @@ void interpret(char* program)
 
             // Loop/branch instructions
             case '[':
-                if(memory[ptr] == 0)
+                if (memory[ptr] == 0)
                 {
                     // Jump forward to matching ]
                     int bracket_counter = 1;
-                    while(bracket_counter)
+                    while (bracket_counter)
                     {
                         instruction_ptr++;
-                        if(program[instruction_ptr] == '[')
+                        if (program[instruction_ptr] == '[')
                         {
                             bracket_counter++;
                         }
 
-                        if(program[instruction_ptr] == ']')
+                        if (program[instruction_ptr] == ']')
                         {
                             bracket_counter--;
                         }
@@ -83,11 +83,11 @@ void interpret(char* program)
                 break;
 
             case ']':
-                if(memory[ptr] != 0)
+                if (memory[ptr])
                 {
                     // Jump back to matching [
                     int bracket_counter = 1;
-                    while(bracket_counter)
+                    while (bracket_counter)
                     {
                         instruction_ptr--;
                         if (program[instruction_ptr] == ']')
@@ -114,13 +114,13 @@ void print_memory()
     for (int i = 0; i < MEMORY_SIZE; i++)
     {
         // Formatting - extra \n after 8 lines
-        if(i%128 == 0 && i > 0)
+        if (i%128 == 0 && i > 0)
         {
             printf("\n");
         }
 
         // Print memory positions
-        if(i%16 == 0)
+        if (i%16 == 0)
         {
             printf("\n0x%04x:  ", i);
         }
@@ -140,11 +140,11 @@ int main(int argc, char** argv)
     {
         // If the user has specified a file, read it
         FILE* inputFile = fopen(argv[1], "r");
-        if(inputFile == NULL) 
+        if (inputFile == NULL) 
         {
             printf("The file \"%s\" could not be opened. Does it exist?\n",
                 argv[1]);
-            return(1);
+            return 1;
         }
         fread(program, 1, PROGRAM_SIZE, inputFile);
     }
@@ -169,6 +169,13 @@ int main(int argc, char** argv)
 
     // For debugging
     // print_memory();
+    if (argc == 3)
+    {
+        if (strcmp(argv[2], "m") == 0)
+        {
+            print_memory();
+        }
+    }
 
     int usec = t2.tv_usec - t1.tv_usec;
     int sec  = t2.tv_sec - t1.tv_sec;
