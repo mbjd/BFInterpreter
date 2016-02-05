@@ -30,9 +30,8 @@ void interpret(char* program)
 {
     int ptr = 0;
     int instruction_ptr = 0;
-    int length = strlen(program);
 
-    while (instruction_ptr < length)
+    while (program[instruction_ptr] != '\0')
     {
         switch(program[instruction_ptr])
         {
@@ -100,12 +99,12 @@ void interpret(char* program)
                             bracket_counter--;
                         }
                     }
-                } // end if
+                }
                 break;
-        } // end switch
+        }
 
         instruction_ptr++;
-    } // end while
+    }
 }
 
 void print_memory()
