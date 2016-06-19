@@ -63,18 +63,18 @@ void interpret(char* program)
 				if(memory[ptr] == 0)
 				{
 					// Jump forward to matching ]
-					int bracket_ounter = 1;
-					while(bracket_ounter)
+					int bracket_counter = 1;
+					while(bracket_counter)
 					{
 						instruction_ptr++;
 						if(program[instruction_ptr] == '[')
 						{
-							bracket_ounter++;
+							bracket_counter++;
 						}
 
 						if(program[instruction_ptr] == ']')
 						{
-							bracket_ounter--;
+							bracket_counter--;
 						}
 					}
 					instruction_ptr--;
@@ -85,18 +85,18 @@ void interpret(char* program)
 				if(memory[ptr] != 0)
 				{
 					// Jump back to matching [
-					int bracket_ounter = 1;
-					while(bracket_ounter)
+					int bracket_counter = 1;
+					while(bracket_counter)
 					{
 						instruction_ptr--;
 						if (program[instruction_ptr] == ']')
 						{
-							bracket_ounter++;
+							bracket_counter++;
 						}
 
 						if (program[instruction_ptr] == '[')
 						{
-							bracket_ounter--;
+							bracket_counter--;
 						}
 					}
 				} // end if
