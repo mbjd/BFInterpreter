@@ -2,15 +2,20 @@
 
 Brainfuck interpreter in C
 
-Still goofs out sometimes when asked for input, but everything else works fine. 1024 * 1 Byte (unsigned char) memory cells.
-  
     ./bf programs/test.bf
     Lorem ipsum dolor sit amet.
-    Elapsed time: 0.000022 seconds
+
+There are two flags you can give:
+
+- `-m` Print a hexadecimal representation of the memory block left behind
+by the program
+- `-t` Measure and print the time needed to execute the program (including
+waiting for user input)
 
 Or, if you want to enter some code quickly, not unlike any other console:
 
-    ./bf
+    ./bf -t
     Enter a BF program: -[------->+<]>-.-[->+++++<]>++.+++++++..+++.[--->+<]>-----.---[->+++<]>.-[--->+<]>---.+++.------.--------.-[--->+<]>.
     Hello World!
-    Elapsed time: 0.000008 seconds
+    Elapsed time: 0.000009 seconds
+

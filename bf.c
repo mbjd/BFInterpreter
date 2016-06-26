@@ -2,7 +2,7 @@
  * Brainfuck Interpreter in C99
  * Balduin Dettling, 2015-07-15
  *
- * ~~ Usage ~~
+ * *** Usage ***
  *
  * - compile: $ gcc -o bf bf.c
  *
@@ -12,21 +12,21 @@
  *   $ ./bf programs/brainfuck/program.bf
  *
  * - If no file is specified, you will be asked to enter a program
- *   using scanf().
+ *   into the standard input.
  */
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <sys/time.h>
 
-#define MEMORY_SIZE 1024 // Memory size in bytes
+#define MEMORY_SIZE 256 // Memory size in bytes
 #define PROGRAM_SIZE 80000 // Max. program length in chars
 
 // Allocate specified amount of memory
-unsigned char memory[MEMORY_SIZE] = {0};
 
-void interpret(char* program)
+void interpret(char* program, char* memory)
 {
 	int ptr = 0;
 	int instruction_ptr = 0;
@@ -55,7 +55,7 @@ void interpret(char* program)
 				break;
 			case ',':
 				printf("\nEnter char to save in cell %d: ", ptr);
-				scanf(" %c", memory + ptr);
+				scanf("%c\n", memory + ptr);
 				break;
 
 				// Loop/branch instructions
@@ -93,7 +93,6 @@ void interpret(char* program)
 						{
 							bracket_counter++;
 						}
-
 						if (program[instruction_ptr] == '[')
 						{
 							bracket_counter--;
@@ -107,16 +106,21 @@ void interpret(char* program)
 	} // end while
 }
 
-void print_memory()
+void print_memory(char* memory)
 {
 	puts("\nThe program modified memory as follows:");
-	for (int i = 0; i < MEMORY_SIZE; i++)
+	for (int i = 0; i < MEMORY_SIZE; i += 2)
 	{
 		// Formatting - extra \n after 8 lines
 		if(i%128 == 0 && i > 0)
 		{
 			printf("\n");
+			if (i%256 == 0)
+			{
+				printf("\n");
+			}
 		}
+
 
 		// Print memory positions
 		if(i%16 == 0)
@@ -125,56 +129,93 @@ void print_memory()
 		}
 
 		// Print a byte of memory
-		printf("%02x ", memory[i]);
+		printf("%02x%02x ", (char) memory[i], (char) memory[i+1]);
 	}
 	printf("\n");
 }
 
 int main(int argc, char** argv)
 {
-	char* program = calloc(PROGRAM_SIZE, 1);
+	char* program = calloc(PROGRAM_SIZE, sizeof(char));
+
+	// Parse command line options
+	int opt;
+	int opt_print_memory;
+	int opt_print_time;
+
+	while ((opt = getopt(argc, argv, "mt")) != -1)
+	{
+		switch(opt)
+		{
+			case 'm':
+				opt_print_memory = 1;
+				break;
+			case 't':
+				opt_print_time = 1;
+				break;
+			default:
+				printf("Usage: %s [-mt] [<file>]\n", argv[0]);
+				printf(" -m : Print memory contents left behind by program\n");
+				printf(" -t : Print elapsed time\n");
+				exit(1);
+		}
+	}
+
+	// Adjust arguments
+	argc -= optind;
+	argv += optind;
 
 	// Program input
-	if (argc > 1)
+	if (argc)
 	{
 		// If the user has specified a file, read it
-		FILE* inputFile = fopen(argv[1], "r");
+		FILE* inputFile = fopen(argv[0], "r");
 		if(inputFile == NULL)
 		{
 			printf("The file \"%s\" could not be opened. Does it exist?\n",
-					argv[1]);
+					argv[0]);
 			return(1);
 		}
 		fread(program, 1, PROGRAM_SIZE, inputFile);
 	}
-	else if (argc == 1)
+	else
 	{
 		// If no argument was passed, ask the user to enter some code
 		printf("Enter a BF program: ");
 		scanf("%s", program);
 	}
 
-
+	char* memory = calloc(MEMORY_SIZE, sizeof(char));
 
 	// Start time measurement
 	struct timeval t1, t2;
-	gettimeofday(&t1, NULL);
+	if (opt_print_time)
+	{
+		gettimeofday(&t1, NULL);
+	}
 
 	// Do the magic
-	interpret(program);
+	interpret(program, memory);
 
-	// Complete time measurement
-	gettimeofday(&t2, NULL);
+	if (opt_print_time)
+	{
+		gettimeofday(&t2, NULL);
+
+		int usec = t2.tv_usec - t1.tv_usec;
+		int sec  = t2.tv_sec - t1.tv_sec;
+		float total = sec + ((float) usec) / 10E6;
+
+		printf("\nElapsed time: %f seconds\n", total);
+	}
 
 	// For debugging
-	// print_memory();
+	if (opt_print_memory)
+	{
+		print_memory(memory);
+	}
 
-	int usec = t2.tv_usec - t1.tv_usec;
-	int sec  = t2.tv_sec - t1.tv_sec;
-	float total = sec + ((float) usec) / 10E6;
-
-	printf("\nElapsed time: %f seconds\n", total);
-
+	free(memory);
+	free(program);
 
 	return 0;
 }
