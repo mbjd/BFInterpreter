@@ -61,8 +61,8 @@ void interpret(char* program, char* memory)
 				// Loop/branch instructions
 			case '[':
 				if(memory[ptr] == 0)
+				// Jump forward to matching ]
 				{
-					// Jump forward to matching ]
 					int bracket_counter = 1;
 					while(bracket_counter)
 					{
@@ -82,9 +82,9 @@ void interpret(char* program, char* memory)
 				break;
 
 			case ']':
+				// Jump back to matching [
 				if(memory[ptr] != 0)
 				{
-					// Jump back to matching [
 					int bracket_counter = 1;
 					while(bracket_counter)
 					{
@@ -120,7 +120,6 @@ void print_memory(char* memory)
 				printf("\n");
 			}
 		}
-
 
 		// Print memory positions
 		if(i%16 == 0)
