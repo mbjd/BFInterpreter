@@ -49,7 +49,7 @@ void interpret(char* program, char* memory)
 				memory[ptr]--;
 				break;
 
-				// I/O instructions
+			// I/O instructions
 			case '.':
 				printf("%c", memory[ptr]);
 				break;
@@ -58,7 +58,7 @@ void interpret(char* program, char* memory)
 				scanf("%c\n", memory + ptr);
 				break;
 
-				// Loop/branch instructions
+			// Loop/branch instructions
 			case '[':
 				if(memory[ptr] == 0)
 				// Jump forward to matching ]
@@ -98,12 +98,16 @@ void interpret(char* program, char* memory)
 							bracket_counter--;
 						}
 					}
-				} // end if
+				}
 				break;
-		} // end switch
+
+			case 'p':
+				print_memory(memory);
+				break;
+		}
 
 		instruction_ptr++;
-	} // end while
+	}
 }
 
 void print_memory(char* memory)
