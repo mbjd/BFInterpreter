@@ -16,64 +16,102 @@
  */
 
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
-#include <unistd.h>
+#include <string.h>
 #include <sys/time.h>
+#include <unistd.h>
 
-#define MEMORY_SIZE 256 // Memory size in bytes
+#define MEMORY_SIZE 256    // Memory size in bytes
 #define PROGRAM_SIZE 80000 // Max. program length in chars
 
-// Allocate specified amount of memory
 
-void interpret(char* program, char* memory)
+// Print a hexdump-like representation of the memory block
+// [start, end)
+void
+print_memory(unsigned char* start, unsigned char* end)
 {
-	int ptr = 0;
-	int instruction_ptr = 0;
+	int i             = 0;
+	unsigned char* it = start;
 
-	while(instruction_ptr < (int) strlen(program))
-	{
-		switch(program[instruction_ptr])
-		{
+	while (it < end) {
+
+		// Formatting - extra \n after 8 lines
+		if (i % 128 == 0 && i > 0) {
+			putchar('\n');
+			if (i % 256 == 0) {
+				putchar('\n');
+			}
+		}
+
+		// Print memory positions at the start of each line
+		if (i % 16 == 0) {
+			printf("\n0x%04x:  ", i);
+		}
+
+		// Print 2 bytes of memory
+		printf("%02x%02x ", *(it), *(it + 1));
+
+		i += 2;
+		it += 2;
+	}
+
+	printf("\n");
+}
+
+// Run the program with the given memory range
+void
+interpret(char* const program_start, char* const program_end,
+          unsigned char* const memory_start, unsigned char* const memory_end)
+{
+	char* instruction_ptr = program_start;
+	unsigned char* data_ptr        = memory_start;
+
+	while (instruction_ptr < program_end) {
+		switch (*instruction_ptr) {
 			// Simple instructions
 			case '>':
-				ptr++;
+				data_ptr++;
 				break;
 			case '<':
-				ptr--;
+				data_ptr--;
 				break;
 			case '+':
-				memory[ptr]++;
+				(*data_ptr)++;
 				break;
 			case '-':
-				memory[ptr]--;
+				(*data_ptr)--;
 				break;
 
 			// I/O instructions
 			case '.':
-				printf("%c", memory[ptr]);
+				putchar(*(data_ptr));
 				break;
 			case ',':
-				printf("\nEnter char to save in cell %d: ", ptr);
-				scanf("%c\n", memory + ptr);
+				printf("\nEnter char to save in cell %ld: ",
+				       (data_ptr - memory_start));
+				*(data_ptr) = getchar();
+				// scanf("%c\n", memory + ptr);
 				break;
 
 			// Loop/branch instructions
 			case '[':
-				if(memory[ptr] == 0)
-				// Jump forward to matching ]
-				{
+				if (*(data_ptr) == 0) {
+					// Jump forward to matching ]
+
 					int bracket_counter = 1;
-					while(bracket_counter)
-					{
+
+					while (bracket_counter) {
 						instruction_ptr++;
-						if(program[instruction_ptr] == '[')
-						{
+
+						if (instruction_ptr >= program_end) {
+							goto out_of_program;
+						}
+
+						if (*instruction_ptr == '[') {
 							bracket_counter++;
 						}
 
-						if(program[instruction_ptr] == ']')
-						{
+						if (*instruction_ptr == ']') {
 							bracket_counter--;
 						}
 					}
@@ -83,18 +121,23 @@ void interpret(char* program, char* memory)
 
 			case ']':
 				// Jump back to matching [
-				if(memory[ptr] != 0)
-				{
+				if (*(data_ptr) != 0) {
+
 					int bracket_counter = 1;
-					while(bracket_counter)
-					{
+
+					while (bracket_counter) {
+
+						if (instruction_ptr < program_start) {
+							goto out_of_program;
+						}
+
 						instruction_ptr--;
-						if (program[instruction_ptr] == ']')
-						{
+
+						if (*instruction_ptr == ']') {
 							bracket_counter++;
 						}
-						if (program[instruction_ptr] == '[')
-						{
+
+						if (*instruction_ptr == '[') {
 							bracket_counter--;
 						}
 					}
@@ -102,42 +145,19 @@ void interpret(char* program, char* memory)
 				break;
 
 			case 'p':
-				print_memory(memory);
+				print_memory(memory_start, memory_end);
 				break;
+			out_of_program:
+				fprintf(stderr, "Invalid data pointer address\n");
+				exit(1);
 		}
 
 		instruction_ptr++;
 	}
 }
 
-void print_memory(char* memory)
-{
-	puts("\nThe program modified memory as follows:");
-	for (int i = 0; i < MEMORY_SIZE; i += 2)
-	{
-		// Formatting - extra \n after 8 lines
-		if(i%128 == 0 && i > 0)
-		{
-			printf("\n");
-			if (i%256 == 0)
-			{
-				printf("\n");
-			}
-		}
-
-		// Print memory positions
-		if(i%16 == 0)
-		{
-			printf("\n0x%04x:  ", i);
-		}
-
-		// Print a byte of memory
-		printf("%02x%02x ", (char) memory[i], (char) memory[i+1]);
-	}
-	printf("\n");
-}
-
-int main(int argc, char** argv)
+int
+main(int argc, char** argv)
 {
 	char* program = calloc(PROGRAM_SIZE, sizeof(char));
 
@@ -146,10 +166,8 @@ int main(int argc, char** argv)
 	int opt_print_memory;
 	int opt_print_time;
 
-	while ((opt = getopt(argc, argv, "mt")) != -1)
-	{
-		switch(opt)
-		{
+	while ((opt = getopt(argc, argv, "mt")) != -1) {
+		switch (opt) {
 			case 'm':
 				opt_print_memory = 1;
 				break;
@@ -168,53 +186,48 @@ int main(int argc, char** argv)
 	argc -= optind;
 	argv += optind;
 
+	size_t program_length;
+
 	// Program input
-	if (argc)
-	{
+	if (argc) {
 		// If the user has specified a file, read it
-		FILE* inputFile = fopen(argv[0], "r");
-		if(inputFile == NULL)
-		{
+		FILE* input_file = fopen(argv[0], "r");
+		if (input_file == NULL) {
 			printf("The file \"%s\" could not be opened. Does it exist?\n",
-					argv[0]);
-			return(1);
+			       argv[0]);
+			return (1);
 		}
-		fread(program, 1, PROGRAM_SIZE, inputFile);
+		program_length = fread(program, 1, PROGRAM_SIZE, input_file);
 	}
-	else
-	{
+	else {
 		// If no argument was passed, ask the user to enter some code
-		printf("Enter a BF program: ");
-		scanf("%s", program);
+		fread(program, 1, PROGRAM_SIZE, stdin);
 	}
 
-	char* memory = calloc(MEMORY_SIZE, sizeof(char));
+	unsigned char* memory = calloc(MEMORY_SIZE, sizeof(char));
 
 	// Start time measurement
 	struct timeval t1, t2;
-	if (opt_print_time)
-	{
+	if (opt_print_time) {
 		gettimeofday(&t1, NULL);
 	}
 
 	// Do the magic
-	interpret(program, memory);
+	interpret(program, program + program_length, memory, memory + MEMORY_SIZE);
 
-	if (opt_print_time)
-	{
+	if (opt_print_time) {
 		gettimeofday(&t2, NULL);
 
-		int usec = t2.tv_usec - t1.tv_usec;
-		int sec  = t2.tv_sec - t1.tv_sec;
+		int usec    = t2.tv_usec - t1.tv_usec;
+		int sec     = t2.tv_sec - t1.tv_sec;
 		float total = sec + ((float) usec) / 10E6;
 
 		printf("\nElapsed time: %f seconds\n", total);
 	}
 
 	// For debugging
-	if (opt_print_memory)
-	{
-		print_memory(memory);
+	if (opt_print_memory) {
+		print_memory(memory, memory + MEMORY_SIZE);
 	}
 
 	free(memory);
