@@ -12,7 +12,7 @@ by the program
 - `-t` Measure and print the time needed to execute the program (including
 waiting for user input)
 
-Or, if you want to enter some code quickly, not unlike any other console:
+Or, if you want to enter some code quickly (like a REPL, just without the L):
 
     ./bf -t
     Enter a BF program: -[------->+<]>-.-[->+++++<]>++.+++++++..+++.[--->+<]>-----.---[->+++<]>.-[--->+<]>---.+++.------.--------.-[--->+<]>.
